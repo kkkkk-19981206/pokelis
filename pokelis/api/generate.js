@@ -14,7 +14,7 @@ const listingSchema = {
       additionalProperties: false,
       properties: {
         itemName: { type: "string", description: "写真から確認できる一般的な商品名。断定できない型番は書かない。" },
-        confidence: { type: "integer", minimum: 0, maximum: 100 },
+        confidence: { type: "integer", description: "読み取りの確信度。0から100の整数。" },
         observation: { type: "string", description: "写真で確認できた特徴を、日本語で簡潔に1文。" },
         uncertainty: { type: "string", description: "出品前に人が確認すべき不明点。なければ空文字。" }
       },
@@ -36,15 +36,13 @@ function platformSchema(platform) {
       category: { type: "string", description: "プラットフォームで探す際のカテゴリ候補。正確なカテゴリIDではない。" },
       brand: { type: "string", description: "確認できたブランド。推測なら空文字。" },
       size: { type: "string", description: "確認できたサイズや規格。推測なら空文字。" },
-      suggestedPrice: { type: "integer", minimum: 1, description: "希望価格があれば尊重した出品価格案。なければ一般的な参考推定。" },
-      priceLow: { type: "integer", minimum: 1 },
-      priceHigh: { type: "integer", minimum: 1 },
+      suggestedPrice: { type: "integer", description: "1円以上。希望価格があれば尊重した出品価格案。なければ一般的な参考推定。" },
+      priceLow: { type: "integer", description: "1円以上の価格帯下限。" },
+      priceHigh: { type: "integer", description: "1円以上の価格帯上限。" },
       keywords: {
         type: "array",
-        minItems: 3,
-        maxItems: 8,
         items: { type: "string" },
-        description: "商品と関係する検索キーワード。ハッシュ記号は付けない。"
+        description: "商品と関係する検索キーワードを3〜8個。ハッシュ記号は付けない。"
       }
     },
     required: ["title", "description", "category", "brand", "size", "suggestedPrice", "priceLow", "priceHigh", "keywords"]
@@ -177,6 +175,7 @@ function validateBody(body) {
 }
 
 function normalizeResult(result, desiredPrice) {
+  result.analysis.confidence = Math.max(0, Math.min(100, Number(result.analysis.confidence) || 0));
   for (const platform of ["mercari", "rakuma"]) {
     const listing = result[platform];
     listing.title = [...String(listing.title || "")].slice(0, 40).join("");
@@ -185,6 +184,9 @@ function normalizeResult(result, desiredPrice) {
     listing.size = String(listing.size || "").trim();
     listing.category = String(listing.category || "").trim();
     listing.keywords = [...new Set((listing.keywords || []).map((word) => String(word).replace(/^#+/, "").trim()).filter(Boolean))].slice(0, 8);
+    listing.suggestedPrice = Math.max(1, Number(listing.suggestedPrice) || desiredPrice || 1000);
+    listing.priceLow = Math.max(1, Number(listing.priceLow) || listing.suggestedPrice);
+    listing.priceHigh = Math.max(1, Number(listing.priceHigh) || listing.suggestedPrice);
     if (desiredPrice) listing.suggestedPrice = desiredPrice;
     if (listing.priceLow > listing.priceHigh) [listing.priceLow, listing.priceHigh] = [listing.priceHigh, listing.priceLow];
     if (desiredPrice) {
