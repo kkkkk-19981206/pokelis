@@ -1,0 +1,12 @@
+{
+  "name": "pokelis",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "check": "node --check app.js && node --check api/generate.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
