@@ -1,9 +1,11 @@
-const CACHE = "pokelis-shell-v1";
+const CACHE = "pokelis-shell-v2";
 const SHELL = [
   "/",
   "/index.html",
+  "/insta.html",
   "/styles.css",
   "/app.js",
+  "/insta.js",
   "/manifest.webmanifest",
   "/assets/icon.svg",
   "/assets/icon-512.png",

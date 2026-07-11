@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ee654e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ストーリー主">
+  <meta name="format-detection" content="telephone=no">
+  <title>ストーリー主 — スクショからアカウント特定</title>
+  <link rel="icon" href="/assets/icon.svg">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://api.anthropic.com">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root { --insta1: #f09433; --insta2: #dc2743; --insta3: #8134af; }
+    .brand-mark.insta { background: linear-gradient(135deg, var(--insta1), var(--insta2) 55%, var(--insta3)); }
+    .insta-shot { max-width: 300px; margin: 0 auto; }
+    .insta-shot img { width: 100%; border-radius: 18px; display: block; border: 1px solid var(--line); }
+    .shot-frame { position: relative; border-radius: 18px; overflow: hidden; }
+    .shot-frame .remove-photo { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; border: 0; color: #fff; background: rgba(22,27,24,.72); font-size: 18px; }
+
+    .account-card {
+      margin-bottom: 16px; padding: 20px; border-radius: var(--radius);
+      color: #fff; background: linear-gradient(135deg, var(--insta1), var(--insta2) 55%, var(--insta3));
+      box-shadow: 0 14px 34px rgba(140, 40, 90, .28);
+    }
+    .account-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .account-handle { font-size: 26px; font-weight: 900; letter-spacing: -.01em; word-break: break-all; }
+    .verified-badge { flex: 0 0 auto; width: 19px; height: 19px; }
+    .account-name { margin: 0 0 14px; font-size: 13px; opacity: .92; }
+    .account-name.empty { opacity: .7; font-style: italic; }
+    .conf-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font-size: 11px; font-weight: 800; }
+    .conf-track { flex: 1; height: 7px; border-radius: 99px; background: rgba(255,255,255,.28); overflow: hidden; }
+    .conf-fill { height: 100%; border-radius: 99px; background: #fff; transition: width .5s ease; }
+    .read-from { margin: 0; font-size: 10px; opacity: .85; }
+    .account-actions { display: grid; grid-template-columns: 1fr auto; gap: 9px; margin-top: 16px; }
+    .open-insta {
+      min-height: 48px; border: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 7px;
+      color: var(--insta2); background: #fff; font-size: 13px; font-weight: 900; text-decoration: none;
+    }
+    .copy-handle { min-height: 48px; padding: 0 16px; border: 1px solid rgba(255,255,255,.6); border-radius: 14px; color: #fff; background: rgba(255,255,255,.15); font-size: 12px; font-weight: 900; }
+    .copy-handle.is-done { background: #fff; color: var(--insta2); border-color: #fff; }
+
+    .not-found-card { text-align: center; }
+    .not-found-card .emoji { font-size: 40px; }
+    .not-found-card h2 { margin: 8px 0 6px; font-size: 18px; }
+    .not-found-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+    .info-chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .info-chip { padding: 6px 11px; border-radius: 99px; background: var(--paper); border: 1px solid var(--line); color: var(--ink); font-size: 11px; font-weight: 700; }
+    .mention-link { padding: 6px 11px; border-radius: 99px; background: var(--sage-soft); color: #3d6a45; font-size: 11px; font-weight: 800; text-decoration: none; }
+    .story-card h3 { margin: 0 0 4px; font-size: 13px; }
+    .story-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .story-card .block { margin-top: 14px; }
+    .block-label { display: block; margin-bottom: 6px; color: var(--coral); font-size: 10px; font-weight: 900; letter-spacing: .12em; }
+    .disclaimer { margin: 4px 3px 0; color: var(--muted); font-size: 10px; line-height: 1.7; }
+    .disclaimer strong { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand" type="button" data-nav="upload" aria-label="最初の画面へ">
+        <span class="brand-mark insta" aria-hidden="true">
+          <svg viewBox="0 0 40 40"><rect x="8" y="8" width="24" height="24" rx="7"/><circle cx="20" cy="20" r="6"/><circle cx="28.5" cy="11.5" r="1.6" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <span>ストーリー主</span>
+      </button>
+      <span class="private-chip"><span></span>あなた専用</span>
+    </header>
+
+    <main>
+      <section class="screen is-active" id="screen-upload" aria-labelledby="upload-title">
+        <div class="hero">
+          <p class="eyebrow">STORY TO ACCOUNT</p>
+          <h1 id="upload-title">この<em>ストーリー</em>、<br>誰のもの？</h1>
+          <p>ストーリーのスクショを見せるだけ。<br>画面の表示から、アカウントを読み取ります。</p>
+        </div>
+
+        <article class="card camera-card">
+          <div class="card-heading">
+            <div>
+              <span class="mini-label">STEP 01</span>
+              <h2>ストーリーのスクショ</h2>
+            </div>
+          </div>
+
+          <div class="empty-camera" id="empty-shot">
+            <div class="camera-illustration" aria-hidden="true">
+              <svg viewBox="0 0 120 96">
+                <rect x="34" y="10" width="52" height="76" rx="10"/>
+                <path d="M34 26h52M34 70h52"/>
+                <circle cx="60" cy="48" r="12"/>
+                <path d="M44 18h8M68 18l6 0"/>
+              </svg>
+            </div>
+            <h3>ストーリーのスクショを選択</h3>
+            <p>ユーザー名が画面の上に写っていると、<br>より正確に特定できます。</p>
+            <div class="photo-actions">
+              <button class="primary-button" id="take-shot" type="button">
+                <svg viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v12H4V7Z"/><circle cx="12" cy="13" r="4"/></svg>
+                写真を撮る
+              </button>
+              <button class="secondary-button" id="choose-shot" type="button">
+                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m5 17 5-5 3 3 2-2 4 4"/><circle cx="16" cy="9" r="2"/></svg>
+                ライブラリ
+              </button>
+            </div>
+          </div>
+
+          <div class="insta-shot" id="shot-preview" hidden>
+            <div class="shot-frame">
+              <img id="shot-image" alt="選択したストーリーのスクリーンショット">
+              <button class="remove-photo" id="remove-shot" type="button" aria-label="スクショを削除">×</button>
+            </div>
+          </div>
+
+          <input id="shot-camera" type="file" accept="image/*" capture="environment" hidden>
+          <input id="shot-library" type="file" accept="image/*" hidden>
+        </article>
+
+        <button class="generate-button" id="identify" type="button" disabled>
+          <span class="generate-icon">◎</span>
+          <span><b>アカウントを特定する</b><small>画面の表示をAIが読み取ります</small></span>
+          <span class="arrow">→</span>
+        </button>
+        <p class="safety-note"><span>✓</span> 画像はアカウント特定のためだけに使用されます</p>
+
+        <p class="disclaimer">
+          <strong>使い方の注意：</strong> このツールは画面に表示された文字を読み取るだけで、顔などから個人を推定するものではありません。特定した情報は、嫌がらせやプライバシーを侵害する目的で使わないでください。
+        </p>
+      </section>
+
+      <section class="screen result-screen" id="screen-result" aria-labelledby="result-title">
+        <div class="result-top">
+          <button class="back-button" id="back-to-upload" type="button" aria-label="最初の画面へ戻る">←</button>
+          <div>
+            <span class="mini-label">RESULT</span>
+            <h1 id="result-title">特定結果</h1>
+          </div>
+          <button class="more-button" id="new-shot" type="button" aria-label="別のスクショ">別の</button>
+        </div>
+
+        <div id="result-body"></div>
+
+        <p class="result-caution">読み取りは画面の表示に基づく推定です。実際のアカウントかは、開いた先で必ず確認してください。</p>
+      </section>
+
+      <section class="screen settings-screen" id="screen-settings" aria-labelledby="settings-title">
+        <div class="section-title">
+          <p class="eyebrow">SETTINGS</p>
+          <h1 id="settings-title">設定</h1>
+          <p>鍵はAPIキーではなく、このアプリ専用のPINです。</p>
+        </div>
+
+        <article class="card setting-card">
+          <label class="field-label" for="app-pin">アプリPIN</label>
+          <div class="pin-row">
+            <input id="app-pin" type="password" autocomplete="off" placeholder="Vercelに設定した8文字以上のPIN">
+            <button id="toggle-pin" type="button">表示</button>
+          </div>
+          <p>ポケリスと同じPINです。このPINはあなたの端末だけに保存され、Anthropic APIキーはサーバー内にあり画面には出ません。</p>
+          <button class="save-setting" id="save-pin" type="button">PINを保存</button>
+        </article>
+
+        <article class="card info-card">
+          <h2>このアプリがすること</h2>
+          <ul>
+            <li><span>✓</span>スクショに表示された文字からアカウントを読み取る</li>
+            <li><span>✓</span>プロフィールを開くリンクを用意する</li>
+            <li><span>—</span>顔や容姿から個人を推定することはしない</li>
+            <li><span>—</span>画像やアカウントを端末外に保存しない</li>
+          </ul>
+        </article>
+
+        <article class="card info-card">
+          <h2>関連ツール</h2>
+          <ul>
+            <li><span>◎</span><a href="/index.html">ポケリス — 写真からフリマ出品文を作る</a></li>
+          </ul>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="メインメニュー">
+      <button class="is-active" data-nav="upload" type="button">
+        <svg viewBox="0 0 24 24"><rect x="7" y="4" width="10" height="16" rx="3"/><circle cx="12" cy="12" r="3.5"/></svg>
+        <span>特定</span>
+      </button>
+      <button data-nav="settings" type="button">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>
+        <span>設定</span>
+      </button>
+      <a class="brand-nav" href="/index.html">
+        <svg viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v12H4V7Z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>ポケリス</span>
+      </a>
+    </nav>
+  </div>
+
+  <div class="loading-overlay" id="loading" hidden>
+    <div class="loader-visual">
+      <div class="scan-card">
+        <svg viewBox="0 0 80 66"><rect x="24" y="6" width="32" height="54" rx="8"/><circle cx="40" cy="34" r="10"/></svg>
+        <span></span>
+      </div>
+      <p class="loader-step">画面を読んでいます</p>
+      <h2>アカウントを<br>探しています…</h2>
+      <div class="loader-dots"><i></i><i></i><i></i></div>
+      <button id="cancel-identify" type="button">キャンセル</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <style>
+    .bottom-nav { grid-template-columns: repeat(3, 1fr); }
+    .brand-nav { border: 0; background: transparent; color: #99958d; display: grid; justify-items: center; gap: 2px; padding: 4px; font-size: 9px; font-weight: 800; text-decoration: none; }
+    .brand-nav svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+
+  <script src="/insta.js" defer></script>
+</body>
+</html>

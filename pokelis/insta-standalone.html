@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#dc2743">
+  <title>ストーリー主（単体版）— スクショからアカウント特定</title>
+  <style>
+    :root {
+      --paper: #f7f2e9; --card: #fffdf8; --ink: #1e2b27; --muted: #6f756f;
+      --line: #ded7ca; --sage-soft: #e5ede2;
+      --insta1: #f09433; --insta2: #dc2743; --insta3: #8134af;
+      --shadow: 0 12px 32px rgba(47, 39, 27, .08); --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--paper); color: var(--ink); }
+    body {
+      margin: 0; min-width: 320px; padding: 0 0 60px;
+      background: radial-gradient(circle at 90% 4%, rgba(220,39,67,.08), transparent 25rem), var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    [hidden] { display: none !important; }
+    .wrap { max-width: 620px; margin: 0 auto; padding: 20px 18px; }
+
+    header { display: flex; align-items: center; gap: 10px; padding: 8px 2px 20px; }
+    .brand-mark {
+      width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #fff;
+      background: linear-gradient(135deg, var(--insta1), var(--insta2) 55%, var(--insta3)); transform: rotate(-3deg);
+    }
+    .brand-mark svg { width: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    header h1 { margin: 0; font-size: 19px; font-weight: 900; letter-spacing: .01em; }
+    header p { margin: 2px 0 0; font-size: 11px; color: var(--muted); }
+
+    .card { margin-bottom: 15px; padding: 18px; border: 1px solid rgba(186,175,156,.52); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+    .card h2 { margin: 0 0 4px; font-size: 15px; }
+    .card .hint { margin: 0 0 12px; font-size: 11px; color: var(--muted); line-height: 1.6; }
+    label.lbl { display: block; margin: 0 0 6px; font-size: 12px; font-weight: 800; }
+    input[type=password], input[type=text] { width: 100%; height: 46px; padding: 0 13px; border: 1px solid #d8d0c3; border-radius: 12px; background: #fffefa; outline: none; }
+    input:focus { border-color: var(--insta2); box-shadow: 0 0 0 3px rgba(220,39,67,.11); }
+    .key-row { display: grid; grid-template-columns: 1fr 58px; gap: 7px; }
+    .key-row button { border: 1px solid var(--line); border-radius: 12px; color: var(--muted); background: var(--paper); font-size: 10px; font-weight: 800; }
+    .save-key { width: 100%; min-height: 44px; margin-top: 10px; border: 0; border-radius: 12px; color: #fff; background: var(--ink); font-size: 12px; font-weight: 900; }
+
+    .empty { border: 1.5px dashed #cfc4b2; border-radius: 16px; padding: 22px 14px; text-align: center; background: linear-gradient(145deg, #fffefb, #faf5eb); }
+    .empty svg { width: 74px; fill: none; stroke: var(--insta2); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .empty h3 { margin: 8px 0 5px; font-size: 15px; }
+    .empty p { margin: 0 0 14px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .actions { display: grid; grid-template-columns: 1.1fr 1fr; gap: 9px; }
+    .btn { min-height: 46px; border-radius: 13px; border: 0; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .btn svg { width: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; }
+    .btn-primary { color: #fff; background: var(--insta2); }
+    .btn-second { color: var(--ink); background: var(--sage-soft); }
+
+    .shot { max-width: 300px; margin: 0 auto; position: relative; }
+    .shot img { width: 100%; border-radius: 16px; display: block; border: 1px solid var(--line); }
+    .shot .rm { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; border: 0; color: #fff; background: rgba(22,27,24,.72); font-size: 18px; }
+
+    .go { width: 100%; min-height: 60px; margin: 4px 0 10px; border: 0; border-radius: 16px; color: #fff; background: var(--ink); font-size: 15px; font-weight: 900; box-shadow: 0 12px 28px rgba(30,43,39,.2); }
+    .go:disabled { opacity: .38; box-shadow: none; }
+
+    .account { margin-bottom: 14px; padding: 20px; border-radius: var(--radius); color: #fff; background: linear-gradient(135deg, var(--insta1), var(--insta2) 55%, var(--insta3)); box-shadow: 0 14px 34px rgba(140,40,90,.28); }
+    .account .top { display: flex; align-items: center; gap: 8px; }
+    .account .handle { font-size: 25px; font-weight: 900; word-break: break-all; }
+    .account .badge { width: 19px; height: 19px; flex: 0 0 auto; }
+    .account .name { margin: 4px 0 14px; font-size: 13px; opacity: .92; }
+    .account .name.empty-name { opacity: .7; font-style: italic; }
+    .conf { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; margin-bottom: 4px; }
+    .conf .track { flex: 1; height: 7px; border-radius: 99px; background: rgba(255,255,255,.28); overflow: hidden; }
+    .conf .fill { height: 100%; background: #fff; border-radius: 99px; transition: width .5s; }
+    .readfrom { margin: 0; font-size: 10px; opacity: .85; }
+    .acc-actions { display: grid; grid-template-columns: 1fr auto; gap: 9px; margin-top: 16px; }
+    .open { min-height: 46px; border: 0; border-radius: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--insta2); background: #fff; font-size: 13px; font-weight: 900; text-decoration: none; }
+    .copy { min-height: 46px; padding: 0 15px; border: 1px solid rgba(255,255,255,.6); border-radius: 13px; color: #fff; background: rgba(255,255,255,.15); font-size: 12px; font-weight: 900; }
+    .copy.done { background: #fff; color: var(--insta2); border-color: #fff; }
+
+    .notfound { text-align: center; }
+    .notfound .emoji { font-size: 38px; }
+    .notfound h2 { margin: 8px 0 5px; font-size: 17px; }
+    .notfound p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+    .uncertain { margin: 0 0 12px; padding: 11px 13px; border-radius: 12px; background: #fff3d8; color: #79612a; font-size: 11px; line-height: 1.6; }
+    .story h3 { margin: 0 0 4px; font-size: 13px; }
+    .story p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .block { margin-top: 13px; }
+    .block-label { display: block; margin-bottom: 6px; color: var(--insta2); font-size: 10px; font-weight: 900; letter-spacing: .12em; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip { padding: 6px 11px; border-radius: 99px; background: var(--paper); border: 1px solid var(--line); font-size: 11px; font-weight: 700; }
+    .mention { padding: 6px 11px; border-radius: 99px; background: var(--sage-soft); color: #3d6a45; font-size: 11px; font-weight: 800; text-decoration: none; }
+
+    .note { margin: 6px 2px 0; font-size: 10px; color: var(--muted); line-height: 1.7; }
+    .note strong { color: var(--ink); }
+    .warn { border-color: rgba(220,39,67,.35); }
+    .warn h2 { color: var(--insta2); }
+
+    .loader { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px; background: rgba(247,242,233,.96); backdrop-filter: blur(8px); text-align: center; }
+    .loader .spin { width: 46px; height: 46px; margin: 0 auto 16px; border: 4px solid rgba(220,39,67,.2); border-top-color: var(--insta2); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader p { font-weight: 800; font-size: 13px; }
+    .loader button { margin-top: 18px; border: 0; color: var(--muted); background: transparent; text-decoration: underline; font-size: 11px; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); max-width: calc(100% - 36px); padding: 10px 16px; border-radius: 99px; color: #fff; background: rgba(30,43,39,.94); font-size: 11px; font-weight: 800; opacity: 0; pointer-events: none; transition: .23s; z-index: 60; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40"><rect x="8" y="8" width="24" height="24" rx="7"/><circle cx="20" cy="20" r="6"/><circle cx="28.5" cy="11.5" r="1.6" fill="currentColor" stroke="none"/></svg>
+      </span>
+      <div>
+        <h1>ストーリー主 <span style="font-weight:700;font-size:11px;color:var(--muted)">単体版</span></h1>
+        <p>スクショからInstagramアカウントを特定</p>
+      </div>
+    </header>
+
+    <article class="card warn">
+      <h2>🔑 APIキー</h2>
+      <p class="hint">あなたのAnthropic APIキー（<code>sk-ant-...</code>）を入力してください。キーはこの端末のブラウザ内にだけ保存され、他へは送信されません（Anthropicへの解析リクエストにのみ使用）。</p>
+      <label class="lbl" for="apikey">Anthropic API キー</label>
+      <div class="key-row">
+        <input id="apikey" type="password" autocomplete="off" placeholder="sk-ant-...">
+        <button id="toggle-key" type="button">表示</button>
+      </div>
+      <button class="save-key" id="save-key" type="button">キーを保存</button>
+      <p class="note"><strong>ご注意：</strong>この単体版はキーがブラウザに保存されます。自分の端末・自分のキーでの利用を想定しています。共有端末では使い終わったら「キーを消去」してください。</p>
+    </article>
+
+    <article class="card" id="shot-card">
+      <h2>ストーリーのスクショ</h2>
+      <p class="hint">ユーザー名（@ではじまる文字）が画面の上に写っていると特定しやすくなります。</p>
+
+      <div class="empty" id="empty-shot">
+        <svg viewBox="0 0 120 96" aria-hidden="true"><rect x="34" y="10" width="52" height="76" rx="10"/><path d="M34 26h52M34 70h52"/><circle cx="60" cy="48" r="12"/></svg>
+        <h3>スクショを選択</h3>
+        <p>写真を撮る、またはライブラリから選びます。</p>
+        <div class="actions">
+          <button class="btn btn-primary" id="take" type="button">
+            <svg viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v12H4V7Z"/><circle cx="12" cy="13" r="4"/></svg>写真を撮る
+          </button>
+          <button class="btn btn-second" id="choose" type="button">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m5 17 5-5 3 3 2-2 4 4"/><circle cx="16" cy="9" r="2"/></svg>ライブラリ
+          </button>
+        </div>
+      </div>
+
+      <div class="shot" id="shot-preview" hidden>
+        <img id="shot-image" alt="選択したスクリーンショット">
+        <button class="rm" id="remove-shot" type="button" aria-label="削除">×</button>
+      </div>
+
+      <input id="cam" type="file" accept="image/*" capture="environment" hidden>
+      <input id="lib" type="file" accept="image/*" hidden>
+    </article>
+
+    <button class="go" id="identify" type="button" disabled>アカウントを特定する →</button>
+
+    <div id="result"></div>
+
+    <p class="note"><strong>使い方の注意：</strong>このツールは画面に表示された文字を読み取るだけで、顔などから個人を推定するものではありません。特定した情報を、嫌がらせやプライバシーを侵害する目的で使わないでください。読み取りは画面表示に基づく推定です。実際のアカウントかは開いた先で必ず確認してください。</p>
+
+    <p class="note" style="text-align:center;margin-top:16px">
+      <button id="clear-key" type="button" style="border:0;background:transparent;color:var(--insta2);font-size:11px;font-weight:800;text-decoration:underline">キーを消去</button>
+    </p>
+  </div>
+
+  <div class="loader" id="loader" hidden>
+    <div>
+      <div class="spin"></div>
+      <p>画面を読んでいます…</p>
+      <button id="cancel" type="button">キャンセル</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+
+  const MODEL = "claude-sonnet-5";
+  const KEY_STORE = "story_owner_api_key";
+  const USERNAME_RE = /^[a-z0-9._]{1,30}$/;
+
+  const state = { shot: null, controller: null };
+
+  const schema = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      isInstagramStory: { type: "boolean", description: "画像がInstagramのストーリー画面のスクリーンショットであればtrue。" },
+      account: {
+        type: "object", additionalProperties: false,
+        properties: {
+          username: { type: "string", description: "画面に文字として表示されているユーザーネーム（@に続く英数字・ピリオド・アンダースコア）。はっきり読み取れない場合は必ず空文字。プロフィール画像や表示名から推測して創作しない。" },
+          displayName: { type: "string", description: "表示名（本名やニックネーム）。ユーザーネームとは別物。見えなければ空文字。" },
+          verified: { type: "boolean", description: "名前の横に認証バッジ（青いチェック）が見えればtrue。" },
+          confidence: { type: "integer", description: "ユーザーネームを正しく読み取れた確信度。0〜100の整数。" },
+          readFrom: { type: "string", description: "どこから読み取ったかを日本語で簡潔に。例：ストーリー左上のユーザー名。" }
+        },
+        required: ["username", "displayName", "verified", "confidence", "readFrom"]
+      },
+      story: {
+        type: "object", additionalProperties: false,
+        properties: {
+          postedAgo: { type: "string", description: "投稿からの経過時間の表示（例：3時間前）。見えなければ空文字。" },
+          summary: { type: "string", description: "ストーリーに写っている内容を日本語で簡潔に1文。" },
+          visibleText: { type: "array", items: { type: "string" }, description: "画面に見えるテキスト・スタンプ・場所や音楽の表示などを短く列挙。なければ空配列。" },
+          mentions: { type: "array", items: { type: "string" }, description: "ストーリー内にタグ付け・メンションとして見える他アカウントのユーザーネーム。@は付けない。文字として見えるものだけ。なければ空配列。" }
+        },
+        required: ["postedAgo", "summary", "visibleText", "mentions"]
+      },
+      uncertainty: { type: "string", description: "特定にあたり人が確認すべき注意点。断定できない場合の注意。なければ空文字。" }
+    },
+    required: ["isInstagramStory", "account", "story", "uncertainty"]
+  };
+
+  const SYSTEM = [
+    "あなたはInstagramのストーリーのスクリーンショットを見て、その投稿主のアカウントを特定するアシスタントです。",
+    "特定は画面に文字として写っている情報だけを根拠にします。ユーザーネーム（@ハンドル）は画面上部などに表示された文字をそのまま読み取ります。",
+    "読み取れない文字を推測で補完したり、プロフィール画像や表示名から実在しそうなユーザーネームを創作したりしてはいけません。読み取れないときはusernameを空文字にし、confidenceを低くします。",
+    "表示名（本名・ニックネーム）とユーザーネーム（@ハンドル）は別物として扱います。",
+    "顔や容姿から個人を推定することはしません。あくまで画面に表示されたアカウント情報の読み取りに徹します。",
+    "日本語で、事実に忠実に、断定できないことは断定しないで回答します。"
+  ].join("\n");
+
+  function init() {
+    $("#apikey").value = localStorage.getItem(KEY_STORE) || "";
+    $("#take").addEventListener("click", () => $("#cam").click());
+    $("#choose").addEventListener("click", () => $("#lib").click());
+    $("#remove-shot").addEventListener("click", clearShot);
+    $("#cam").addEventListener("change", (e) => loadShot(e.target.files));
+    $("#lib").addEventListener("change", (e) => loadShot(e.target.files));
+    $("#identify").addEventListener("click", identify);
+    $("#cancel").addEventListener("click", () => state.controller && state.controller.abort());
+    $("#toggle-key").addEventListener("click", () => {
+      const k = $("#apikey");
+      const hidden = k.type === "password";
+      k.type = hidden ? "text" : "password";
+      $("#toggle-key").textContent = hidden ? "隠す" : "表示";
+    });
+    $("#save-key").addEventListener("click", () => {
+      const v = $("#apikey").value.trim();
+      if (!v.startsWith("sk-ant-")) return toast("APIキーの形式が正しくないようです");
+      localStorage.setItem(KEY_STORE, v);
+      toast("APIキーを保存しました");
+    });
+    $("#clear-key").addEventListener("click", () => {
+      localStorage.removeItem(KEY_STORE);
+      $("#apikey").value = "";
+      toast("APIキーを消去しました");
+    });
+  }
+
+  async function loadShot(files) {
+    const file = [...files].find((f) => f.type.startsWith("image/"));
+    if (!file) return;
+    try {
+      state.shot = await compress(file);
+      renderShot();
+    } catch (e) {
+      console.error(e);
+      toast("読み込めない画像でした");
+    } finally {
+      $("#cam").value = ""; $("#lib").value = "";
+    }
+  }
+
+  function compress(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const maxSide = 1480;
+          const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+          const w = Math.max(1, Math.round(img.naturalWidth * scale));
+          const h = Math.max(1, Math.round(img.naturalHeight * scale));
+          const c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          c.getContext("2d", { alpha: false }).drawImage(img, 0, 0, w, h);
+          const url = c.toDataURL("image/jpeg", 0.88);
+          resolve({ dataUrl: url, data: url.split(",")[1] });
+        };
+        img.src = String(reader.result);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderShot() {
+    const has = Boolean(state.shot);
+    $("#empty-shot").hidden = has;
+    $("#shot-preview").hidden = !has;
+    $("#identify").disabled = !has;
+    if (has) $("#shot-image").src = state.shot.dataUrl;
+  }
+
+  function clearShot() { state.shot = null; renderShot(); $("#result").innerHTML = ""; }
+
+  async function identify() {
+    if (!state.shot) return;
+    const apiKey = (localStorage.getItem(KEY_STORE) || $("#apikey").value).trim();
+    if (!apiKey) { $("#apikey").focus(); return toast("先にAPIキーを保存してください"); }
+
+    state.controller = new AbortController();
+    setLoading(true);
+
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        signal: state.controller.signal,
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 1200,
+          system: SYSTEM,
+          messages: [{
+            role: "user",
+            content: [
+              { type: "image", source: { type: "base64", media_type: "image/jpeg", data: state.shot.data } },
+              { type: "text", text: "このInstagramストーリーのスクリーンショットから、投稿主のアカウントを特定してください。画面に表示された文字だけを根拠にし、読み取れないユーザーネームは創作しないでください。" }
+            ]
+          }],
+          output_config: { format: { type: "json_schema", schema } }
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data && data.error && data.error.message ? data.error.message : "";
+        if (res.status === 401) throw new Error("APIキーが正しくないか、権限がありません");
+        if (res.status === 429) throw new Error("APIが混み合っています。少し待ってください");
+        throw new Error(msg || "アカウントを特定できませんでした");
+      }
+      if (data.stop_reason === "max_tokens") throw new Error("解析が途中で切れました。もう一度お試しください");
+
+      const block = (data.content || []).find((b) => b.type === "text");
+      if (!block || !block.text) throw new Error("AIから回答を受け取れませんでした");
+
+      renderResult(normalize(JSON.parse(block.text)));
+      window.scrollTo({ top: $("#result").offsetTop - 20, behavior: "smooth" });
+    } catch (e) {
+      if (e.name !== "AbortError") toast(e.message, 4200);
+    } finally {
+      setLoading(false);
+      state.controller = null;
+    }
+  }
+
+  function normalize(r) {
+    const a = r.account || {};
+    const raw = String(a.username || "").trim().replace(/^@+/, "").toLowerCase();
+    const username = USERNAME_RE.test(raw) ? raw : "";
+    const s = r.story || {};
+    const mentions = uniqueUsernames(s.mentions).map((n) => ({ username: n, profileUrl: profileUrl(n) }));
+    return {
+      isInstagramStory: Boolean(r.isInstagramStory),
+      account: {
+        username,
+        displayName: String(a.displayName || "").trim(),
+        verified: Boolean(a.verified),
+        confidence: clamp(Number(a.confidence) || 0, 0, 100),
+        readFrom: String(a.readFrom || "").trim(),
+        profileUrl: username ? profileUrl(username) : ""
+      },
+      story: {
+        postedAgo: String(s.postedAgo || "").trim(),
+        summary: String(s.summary || "").trim(),
+        visibleText: cleanList(s.visibleText, 12),
+        mentions
+      },
+      uncertainty: String(r.uncertainty || "").trim()
+    };
+  }
+
+  function uniqueUsernames(list) {
+    const seen = new Set(); const out = [];
+    for (const raw of Array.isArray(list) ? list : []) {
+      const n = String(raw || "").trim().replace(/^@+/, "").toLowerCase();
+      if (USERNAME_RE.test(n) && !seen.has(n)) { seen.add(n); out.push(n); }
+    }
+    return out.slice(0, 10);
+  }
+  function cleanList(list, max) {
+    const out = [];
+    for (const raw of Array.isArray(list) ? list : []) {
+      const v = String(raw || "").trim();
+      if (v) out.push(v.slice(0, 120));
+      if (out.length >= max) break;
+    }
+    return out;
+  }
+  function profileUrl(u) { return "https://www.instagram.com/" + encodeURIComponent(u) + "/"; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, Math.round(v))); }
+
+  function renderResult(r) {
+    const box = $("#result");
+    box.innerHTML = "";
+    if (!r.isInstagramStory) {
+      box.appendChild(notFound("🤔", "ストーリーではなさそうです", "Instagramのストーリー画面のスクリーンショットを選んでください。ユーザー名が画面の上に写っていると特定しやすくなります。"));
+      appendStory(box, r); return;
+    }
+    if (r.account.username) box.appendChild(accountCard(r.account));
+    else box.appendChild(notFound("🔍", "ユーザー名を読み取れませんでした", "画面にユーザー名（@ではじまる文字）がはっきり写っていないようです。ストーリー左上のユーザー名が入るように撮り直すと特定できることがあります。"));
+
+    if (r.uncertainty) {
+      const p = document.createElement("p");
+      p.className = "uncertain";
+      p.textContent = "確認ポイント：" + r.uncertainty;
+      box.appendChild(p);
+    }
+    appendStory(box, r);
+  }
+
+  function accountCard(a) {
+    const el = document.createElement("article");
+    el.className = "account";
+    const badge = a.verified
+      ? '<svg class="badge" viewBox="0 0 24 24" aria-label="認証済み"><path fill="#fff" d="M12 1.6l2.5 2.1 3.3-.3 1 3.1 3 1.4-1.2 3.1 1.2 3.1-3 1.4-1 3.1-3.3-.3L12 22.4l-2.5-2.1-3.3.3-1-3.1-3-1.4 1.2-3.1L2.2 9.9l3-1.4 1-3.1 3.3.3z"/><path fill="#dc2743" d="M10.6 14.6l-2-2-1.2 1.2 3.2 3.2 5.6-5.6-1.2-1.2z"/></svg>'
+      : "";
+    const name = a.displayName
+      ? '<p class="name">' + esc(a.displayName) + '</p>'
+      : '<p class="name empty-name">表示名は読み取れませんでした</p>';
+    const readFrom = a.readFrom ? '<p class="readfrom">' + esc(a.readFrom) + '</p>' : "";
+    el.innerHTML =
+      '<div class="top"><span class="handle">@' + esc(a.username) + '</span>' + badge + '</div>' +
+      name +
+      '<div class="conf"><span>特定の確信度</span><span class="track"><span class="fill" style="width:' + a.confidence + '%"></span></span><span>' + a.confidence + '%</span></div>' +
+      readFrom +
+      '<div class="acc-actions"><a class="open" href="' + esc(a.profileUrl) + '" target="_blank" rel="noopener noreferrer">Instagramで開く →</a><button class="copy" type="button">コピー</button></div>';
+    el.querySelector(".copy").addEventListener("click", async (e) => {
+      await copy("@" + a.username);
+      const b = e.currentTarget;
+      b.textContent = "コピー済み"; b.classList.add("done");
+      setTimeout(() => { b.textContent = "コピー"; b.classList.remove("done"); }, 1400);
+    });
+    return el;
+  }
+
+  function notFound(emoji, title, msg) {
+    const el = document.createElement("article");
+    el.className = "card notfound";
+    el.innerHTML = '<div class="emoji" aria-hidden="true">' + emoji + '</div><h2>' + esc(title) + '</h2><p>' + esc(msg) + '</p>';
+    return el;
+  }
+
+  function appendStory(box, r) {
+    const s = r.story;
+    if (!s) return;
+    const has = s.summary || s.postedAgo || (s.mentions && s.mentions.length) || (s.visibleText && s.visibleText.length);
+    if (!has) return;
+    const el = document.createElement("article");
+    el.className = "card story";
+    el.innerHTML = '<span class="block-label">STORY</span><h3>ストーリーの内容</h3>';
+    const p = document.createElement("p");
+    p.textContent = s.summary || "内容の説明は読み取れませんでした。";
+    el.appendChild(p);
+
+    if (s.postedAgo) {
+      const d = document.createElement("div"); d.className = "chips";
+      d.innerHTML = '<span class="chip">🕒 ' + esc(s.postedAgo) + '</span>';
+      el.appendChild(d);
+    }
+    if (s.mentions && s.mentions.length) {
+      const b = document.createElement("div"); b.className = "block";
+      b.innerHTML = '<span class="block-label">MENTIONS</span>';
+      const row = document.createElement("div"); row.className = "chips";
+      s.mentions.forEach((m) => {
+        const a = document.createElement("a");
+        a.className = "mention"; a.href = m.profileUrl; a.target = "_blank"; a.rel = "noopener noreferrer";
+        a.textContent = "@" + m.username;
+        row.appendChild(a);
+      });
+      b.appendChild(row); el.appendChild(b);
+    }
+    if (s.visibleText && s.visibleText.length) {
+      const b = document.createElement("div"); b.className = "block";
+      b.innerHTML = '<span class="block-label">見えるテキスト</span>';
+      const row = document.createElement("div"); row.className = "chips";
+      s.visibleText.forEach((t) => {
+        const c = document.createElement("span"); c.className = "chip"; c.textContent = t;
+        row.appendChild(c);
+      });
+      b.appendChild(row); el.appendChild(b);
+    }
+    box.appendChild(el);
+  }
+
+  function setLoading(on) { $("#loader").hidden = !on; document.body.style.overflow = on ? "hidden" : ""; }
+
+  function copy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+    const a = document.createElement("textarea");
+    a.value = text; a.style.position = "fixed"; a.style.opacity = "0";
+    document.body.appendChild(a); a.select(); document.execCommand("copy"); a.remove();
+    return Promise.resolve();
+  }
+
+  let toastTimer;
+  function toast(msg, dur) {
+    clearTimeout(toastTimer);
+    const t = $("#toast");
+    t.textContent = msg; t.classList.add("show");
+    toastTimer = setTimeout(() => t.classList.remove("show"), dur || 2400);
+  }
+
+  function esc(v) {
+    return String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
+  }
+
+  init();
+  </script>
+</body>
+</html>
